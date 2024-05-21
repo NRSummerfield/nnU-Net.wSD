@@ -9,8 +9,8 @@ We extend the publicly available state-of-the-art deep learning framework, [nnU-
 ---
 ## Contents:
 This github repository consists of two main parts: 
-1) The direct, hard coded model used in the cardiac segmentation paper
-2) A more user-friendly, flexible version of the DynU-Net backbone
+1) A more user-friendly, flexible version of the DynU-Net backbone
+2) The direct, hard coded model used in the cardiac segmentation paper
 
 
 
