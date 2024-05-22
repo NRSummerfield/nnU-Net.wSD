@@ -56,3 +56,5 @@ loss_fn = CompositeLoss(
 )
 ```
 
+## Paper Implementation:
+The flexible version presented in `nnU-Net.wSD` is a true implementation of the same method used in the paper. The hard coded equivalent nnU-Net.wSD-SIM+Fx method, along side data augmentation / loading, testing, et cetera is provided under `Paper-Implementation`. Data and checkpoints are not included. The training log outputs from the experiments are provided under `Paper-Implementation/Experiment-Logs`.
