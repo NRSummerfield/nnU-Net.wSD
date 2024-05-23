@@ -29,6 +29,7 @@ class Manager(tm.Manager, Generic[Module]):
         self._post_labels = post_labels
         self._post_predicts = post_predicts
         self._roi_size = roi_size
+        self.notes = ""
 
     @classmethod
     def from_checkpoint(cls: Type[Manager], *args, **kwargs) -> Manager:
