@@ -2,10 +2,9 @@
 
 This is a direct extension of the work by [soumbane's DualSelfDistillation](https://github.com/soumbane/DualSelfDistillation) applied to medical image segmentation of the cardiac substructures from low-field ViewRay MR-Linac volumes as presented in the International Journal of Radiation Oncology $\bullet$ Biology $\bullet$ Physics paper: [_Enhancing Precision in Cardiac Segmentation for MR-Guided Radiation Therapy through Deep Learning_]().
 
-![](key_figure.png)
-
 We extend the publicly available state-of-the-art deep learning framework, [nnU-Net](https://github.com/MIC-DKFZ/nnUNet/tree/master), to incorporate dual self-distillation along the encoding and decoding branches.
 
+![](key_figure.png)
 
 ---
 ## Requirements:
