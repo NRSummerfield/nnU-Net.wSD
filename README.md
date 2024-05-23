@@ -7,14 +7,21 @@ We extend the publicly available state-of-the-art deep learning framework, [nnU-
 
 
 ---
+## Requirements:
+* Python $\geq$ 3.9
+* [Pyorch](https://pytorch.org/) $\geq$ 1.12.0
+* [Monai](https://monai.io/) $\geq$ 0.9
+* [torchmanager](https://github.com/kisonho/torchmanager) $\geq$ 1.1.0
+
+---
 ## Contents:
 This github repository consists of two main parts: 
 1) A more user-friendly, flexible version of the DynU-Net backbone
 2) The direct, hard coded model used in the cardiac segmentation paper
 
-
-
 ## Getting started with nnU-Net.wSD:
+This section is specifically about the model and associated loss functions. Data handling and the like are not described here. Please see the published paper or `Paper-Implementation/train_SelfDisti_ViewRay_nnUNETOpt.pt` for more details on our implemntation. Additional (general) tutorials on deep learning training can be found [here.](https://github.com/Project-MONAI/tutorials/tree/main/3d_segmentation)
+
 ### Model Output during Training:
 In short, at every level of both the encoding and decoding branches, the output is collected and upsampled to match the size of the model's main output. The last encoder and decoder respectively form the teacher while all the other levels are the students. KLDivergence losses are calculated between each student and the teacher to enable self-distillation along each branch.
 
