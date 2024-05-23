@@ -32,17 +32,7 @@ from loss_functions import Self_Distillation_Loss_Dice, PixelWiseKLDiv, Self_Dis
 import inspect
 from copy import deepcopy
 
-# For consistency - Makes it really slow
-# from torchmanager_core import random
-# # random.freeze_seed(100) # setting the seed for reproducability
-# # cudnn.benchmark = False
-# # cudnn.deterministic = True
-
-
-### Current best model: "nnUNETwSD_HigherLR_wLRS6_DecSD/best_dice.model"Testing [best] model at epoch: 196
-#{'DiceCE_loss': 0.5039976239204407, 'KL_loss': 0.0, 'dice': 0.6005240082740784, 'loss': 0.5039976239204407, 'dice_0': 0.7893756031990051, 'dice_1': 0.7974714636802673, 'dice_2': 0.7971574068069458, 'dice_3': 0.8866153359413147, 'dice_4': 0.7793675661087036, 'dice_5': 0.698963463306427, 'dice_6': 0.5217999815940857, 'dice_7': 0.7498135566711426, 'dice_8': 0.5207235813140869, 'dice_9': 0.2478770613670349, 'dice_10': 0.2950035631656647, 'dice_11': 0.12211958318948746}
-
-save_ckpt = None #'experiments.interpolated_volumes/cardiac_SegResNetVAE_base.exp/last.model'
+save_ckpt = None
 
 notes = f"""
 Optimizer: AdamW 1e-3, 3e-5, amsgrad=True
