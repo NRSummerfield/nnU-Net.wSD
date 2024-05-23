@@ -8,67 +8,7 @@ from monai.data import CacheDataset, Dataset
 from torch.utils.data import Subset
 import logging
 
-from .transforms import TransformOptions, load_transforms, SetModality#, StackModalities, GetSize, SetModality
-
-
-def load(
-    train_image_dir: Path, 
-    train_label_dir: Path, 
-    img_size: Union[int, tuple[int, ...]], 
-    transform_options: Union[TransformOptions, dict[str, Any]], 
-    train_split: Optional[int] = None, 
-    validation_image_dir: Optional[Path] = None,
-    validation_label_dir: Optional[Path] = None,
-    show_verbose: bool = False,
-    ndim: int = 3,
-    search_key: str = '*.nii.gz',
-    cache_num: Union[int, tuple[int]] = 1,
-    num_workers: int = os.cpu_count(),
-    ) -> Tuple[CacheDataset, CacheDataset]:
-
-    # index 0 is the image volume, index 1 is the ground truth
-    keys = ['image', 'label']
-
-    # Load the training images/labels in a dictionary
-    train_images = sorted(glob.glob(os.path.join(train_image_dir, search_key)))
-    train_labels = sorted(glob.glob(os.path.join(train_label_dir, search_key)))
-    img_size = img_size if isinstance(img_size, tuple) else (img_size for _ in range(ndim))
-    train_dict = [{keys[0]: img, keys[1]: lab} for img, lab in zip(train_images, train_labels)]
-
-    # If a validation data directory is defined, create a dictionary for them
-    if (validation_image_dir and validation_label_dir):
-        val_images = sorted(glob.glob(os.path.join(validation_image_dir, search_key)))
-        val_labels = sorted(glob.glob(os.path.join(validation_label_dir, search_key)))
-        val_dict = [{keys[0]: img, keys[1]: lab} for img, lab in zip(val_images, val_labels)]
-
-    # If no validation dir is defined, split the training one into two as defined by train_split
-    else:
-        if not train_split: raise ValueError(f'If a validation image and label directory are not specified, use train_split to create a validation set from the trianing cohort wtih n=train_split cases')
-        val_dict = train_dict[-train_split:]
-        train_dict = train_dict[:-train_split]
-    
-    # Creating the sequence of transformations based off of transformation option dictionary
-    td = transform_options if isinstance(transform_options, TransformOptions) else TransformOptions.from_dict(transform_options) # Renaming the options to reduce size
-    train_transforms, val_transforms = load_transforms(td, img_size, keys)
-
-    cache_num = cache_num if isinstance(cache_num, tuple) else (cache_num, cache_num)
-
-    train_dataset = CacheDataset(
-        data=train_dict,
-        transform=train_transforms,
-        cache_num=cache_num[0],
-        num_workers=num_workers,
-        cache_rate=1.0,
-        progress=show_verbose
-    )
-    val_dataset = CacheDataset(
-        data=val_dict,
-        transform=val_transforms,
-        cache_num=cache_num[1],
-        num_workers=num_workers,
-        cache_rate=1.0,
-    )
-    return train_dataset, val_dataset
+from .transforms import SetModality#, StackModalities, GetSize, SetModality
 
 
 def load_SingleVolume(

@@ -26,7 +26,6 @@ from torchmanager_core.protocols import MonitorType
 import stuff.data as data
 from configs import TrainingConfig
 from torchmanager_monai import Manager, metrics
-from networks import SelfDistillUNETRWithDictOutput as SelfDistilUNETR
 from networks import SelfDistillnnUNetWithDictOutput as SelfDistilnnUNet
 from loss_functions import Self_Distillation_Loss_Dice, PixelWiseKLDiv, Self_Distillation_Loss_KL, Self_Distillation_Loss_L2
 

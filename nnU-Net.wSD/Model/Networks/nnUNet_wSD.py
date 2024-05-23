@@ -1,20 +1,18 @@
 # pyright: reportPrivateImportUsage=false
-from typing import List, Optional, Sequence, Tuple, Type, Union
+from typing import List, Optional, Sequence, Tuple, Type, Union, Any
 
 import torch
 import torch.nn as nn
 from torch.nn.functional import interpolate
 
 from monai.utils import UpsampleMode, InterpolateMode
-
-# Relative import for final training model
-# from .deepUp import DeepUp
-
-# Absolute import for testing this script
-from .deepUp import DeepUp
-
 from monai.networks.blocks.dynunet_block import UnetBasicBlock, UnetOutBlock, UnetResBlock, UnetUpBlock
 
+# # Absolute import for testing this script
+# from deepUp import DeepUp
+
+# Relative import for final training model
+from .deepUp import DeepUp
 
 class SkipLayer(nn.Module):
     """
@@ -25,7 +23,6 @@ class SkipLayer(nn.Module):
     shared amongst all the instances of this class and is used to store the output from the supervision heads during
     forward passes of the network.
     """
-
     heads: Optional[List[torch.Tensor]]
 
     def __init__(self, index, downsample, upsample, next_layer, heads=None, super_head=None, e_heads= None, d_heads=None, enc_head=None, dec_head=None):
@@ -85,8 +82,6 @@ class DynUNet_withDualSelfDistillation(nn.Module):
             this argument to make the network more flexible. 
         norm_name: feature normalization type and arguments. Defaults to ``INSTANCE``.
         act_name: activation layer type and arguments. Defaults to ``leakyrelu``.
-        deep_supervision: whether to add deep supervision head before output. Defaults to ``False``.
-        deep_supr_num: number of feature maps that will output during deep supervision head. Defaults to 1. 
         res_block: whether to use residual connection based convolution blocks during the network. Defaults to ``False``.
         trans_bias: whether to set the bias parameter in transposed convolution layers. Defaults to ``False``.
     """
@@ -133,10 +128,8 @@ class DynUNet_withDualSelfDistillation(nn.Module):
 
         # flexible creation of the DeepUp layers for self-distillation
         self.n_layers = len(filters)
-        for i in range(self.n_layers):
-            self.__setattr__(
-                name = f'deep_{i}',
-                value = DeepUp(
+        self.deep_up_layers = nn.ModuleDict({
+            f'deep_{i}': DeepUp(
                     spatial_dims=spatial_dims,
                     in_channels=filters[~i],
                     out_channels=out_channels,
@@ -145,15 +138,16 @@ class DynUNet_withDualSelfDistillation(nn.Module):
                     interp_mode=interp_mode,
                     multiple_upsample=multiple_upsample
                     ) 
-                )
+            for i in range(self.n_layers) }
+        )
 
         # Lists recording the OUTPUT of the layers for self distllation
         self.e_heads: List[torch.Tensor] = [torch.rand(1)] * (self.n_layers - 1)
         self.d_heads: List[torch.Tensor] = [torch.rand(1)] * (self.n_layers - 1)
 
         # Lists of Modules used to output each layer in the final shape
-        self.self_distillation_enc_heads = nn.ModuleList([self.__getattr__(f'deep_{i}') for i in range(self.n_layers-1, 0, -1)])
-        self.self_distillation_dec_heads = nn.ModuleList([self.__getattr__(f'deep_{i}') for i in range(self.n_layers-2, -1, -1)])
+        self.self_distillation_enc_heads = nn.ModuleList([self.deep_up_layers[f'deep_{i}'] for i in range(self.n_layers-1, 0, -1)])
+        self.self_distillation_dec_heads = nn.ModuleList([self.deep_up_layers[f'deep_{i}'] for i in range(self.n_layers-2, -1, -1)])
 
         # initialize weights
         self.apply(self.initialize_weights)
@@ -312,10 +306,12 @@ class DynUNet_withDualSelfDistillation(nn.Module):
                 module.bias = nn.init.constant_(module.bias, 0)
 
     # forward function when called
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> Union[torch.Tensor, dict[str, Any]]:
         """
-        If self.training == True:
-            out = dict
+        Pass an input through the model.
+        ```
+        if self.training == True:
+            out: dict
                 # Structure:
                 #   out = {
                 #       "out": out_main,
@@ -329,7 +325,8 @@ class DynUNet_withDualSelfDistillation(nn.Module):
                 #           }
                 #       }
         else:
-            out = prediction
+            out: torch.Tensor
+        ```
         """
         out_layers = self.skip_layers(x)
 
@@ -354,15 +351,12 @@ class DynUNet_withDualSelfDistillation(nn.Module):
 
             return out
         else: return out_main
-            
 
 
 if __name__ == "__main__":
-    # try the following to add one more layer to nnUnet (implemention of DynUnet from MONAI)
     kernel_size = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
     strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
-    filters = [32,64,128,256,512,1024] 
-
+    filters = [32,64,128,256,512,512]
 
     nnunet_with_self_distil = DynUNet_withDualSelfDistillation(
         spatial_dims = 3,
@@ -376,15 +370,31 @@ if __name__ == "__main__":
         res_block=True,
         )
 
+    nnunet_with_self_distil.train()
+    # nnunet_with_self_distil.eval()
+
     ## Count model parameters
     total_params = sum(p.numel() for p in nnunet_with_self_distil.parameters() if p.requires_grad)
     print(f'The total number of model parameter is: {total_params}')
 
-    x1 = torch.rand((1, 1, 96, 96, 96)) # (B,num_ch,x,y,z)
-    print("Self Distil nnUNet input shape: ", x1.shape)
+    input = torch.rand((1, 1, 96, 96, 96)) # (B,num_ch,x,y,z)
+    print("Self Distil nnUNet input shape: ", input.shape)
 
-    x3 = nnunet_with_self_distil(x1)
-    print("Self Distil nnUNet output shape: ", x3[10].shape)
+    out = nnunet_with_self_distil(input)
+
+    print(f'Model is in {"training" if nnunet_with_self_distil.training else "validaiton"} mode.')
+    print(f"Self Distil nnUNet output type: {type(out)}")
+
+    if isinstance(out, dict):
+        print(f'Key: "out", Tensor shape: {out["out"].shape}')
+        print(f'Key: "encoder"...')
+        print(f'  Sub Key: "teacher", Tensor shape: {out["encoder"]["teacher"].shape}')
+        print(f'  Sub Key: "students", list[Tensor], length: {len(out["encoder"]["students"])}, shapes: {[x.shape for x in out["encoder"]["students"]]}')
+        print(f'Key: "decoder"...')
+        print(f'  Sub Key: "teacher", Tensor shape: {out["decoder"]["teacher"].shape}')
+        print(f'  Sub Key: "students", list[Tensor], length: {len(out["encoder"]["students"])}, shapes: {[x.shape for x in out["decoder"]["students"]]}')
+    else:
+        print(f'Output tensor shape: {out.shape}')
 
     # x3 = nnunet_with_self_distil(x1)
     # print("Self Distil nnUNet output shape: ", x3.shape)
