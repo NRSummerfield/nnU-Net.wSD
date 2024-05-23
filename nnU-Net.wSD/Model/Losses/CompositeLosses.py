@@ -61,16 +61,20 @@ class CompositeLoss(_Loss, losses.Loss):
             "segmentation": loss_segmentation,
         }
 
+    @property
+    def result(self):
+        return self.total
+
     def __call__(self, input: torch.Tensor, target:torch.Tensor):
         if isinstance(target, dict): target = target[self.target]
         out = {}
-        total = torch.tensor(0)
+        self.total = torch.tensor(0, dtype=target.dtype, device=target.device, requires_grad=target.requires_grad)
         for k in self.loss_fn.keys():
             k_loss = self.loss_fn[k](input=input, target=target)
-            total = total +k_loss
+            self.total = self.total + k_loss
             out[k] = k_loss.item()
-        out['total_loss'] = total.item()
+        out['total_loss'] = self.total.item()
         if self.return_just_loss:
-            return total
+            return self.total
         else:
-            return total, out
+            return self.total, out
