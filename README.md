@@ -16,8 +16,8 @@ We extend the publicly available state-of-the-art deep learning framework, [nnU-
 ---
 ## Contents:
 This github repository consists of two main parts: 
-1) A more user-friendly, flexible version of the DynU-Net backbone
-2) The direct, hard coded model used in the cardiac segmentation paper
+1) `nnU-Net.wSD`: A more user-friendly, flexible version of the DynU-Net backbone
+2) `Paper-Implementation`: The direct, hard coded model used in the cardiac segmentation paper
 
 ## Getting started with nnU-Net.wSD:
 This section is specifically about the model and associated loss functions. Data handling and the like are not described here. Please see the published paper or `Paper-Implementation/train_SelfDisti_ViewRay_nnUNETOpt.pt` for more details on our Implementation. Additional (general) tutorials on deep learning training can be found [here.](https://github.com/Project-MONAI/tutorials/tree/main/3d_segmentation)
