@@ -1,5 +1,7 @@
-"""python train_SelfDistil_ViewRay_3.py -b 2 --device cuda:1 -e 1200 --img_size 96 96 96 --show_verbose -sd experiments.interpolated_volumes -exp nnUNETwSD_onSortedInterpolatedData_Jul13"""
-
+"""
+Command prompt:
+python train_SelfDistil_ViewRay_nnUNETOpt.py _ _ -b 2 --device cuda:1 -e 1200 --img_size 96 96 96 --show_verbose -exp nnU-Net.wSD_run1
+"""
 # Python inherent
 import os, glob, datetime
 from typing import Union
